@@ -25,13 +25,13 @@ public class JwtProvider {
          return Keys.hmacShaKeyFor(jwtSecret.getBytes());
      }
 
-     public String generateToken(String username, UUID userId, Collection<String> roles){
+     public String generateToken(String username, Long userId){
          Date now = new Date();
          Date expiration = new Date(now.getTime() + jwtExpirationInMS);
          return Jwts.builder()
                  .setSubject(username)
-                 .claim("uid", userId.toString())
-                 .claim("roles", roles)
+                 .claim("long", userId.toString())
+                 .claim("username", username)
                  .setIssuedAt(now)
                  .setExpiration(expiration)
                  .signWith(key(), SignatureAlgorithm.HS256)

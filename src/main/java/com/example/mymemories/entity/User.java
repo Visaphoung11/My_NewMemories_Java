@@ -12,8 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Data
 @Table(name = "users")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class User {
 
     @Id
@@ -29,62 +29,5 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "users_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
-
-    @CreationTimestamp
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    private Instant updatedAt;
-
-	public void setUsername(String username2) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setEmail(String email2) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setPassword(String encode) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void addRole(Role userRole) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public String getUsername() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public UUID getId() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Optional<Role> getRoles() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String getPassword() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String getEmail() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  
 }

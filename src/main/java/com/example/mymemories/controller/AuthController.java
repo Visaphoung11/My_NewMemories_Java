@@ -18,14 +18,14 @@ public class AuthController {
         this.authService = authService;
     }
 
-    // REGISTER - Now returns token (correct & professional)
+   
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest req) {
         AuthResponse response = authService.register(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // LOGIN - Perfect as is
+ 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
         AuthResponse response = authService.login(req);

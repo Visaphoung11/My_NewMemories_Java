@@ -8,10 +8,14 @@ import com.example.mymemories.entity.User;
 import com.example.mymemories.repository.RoleRepository;
 import com.example.mymemories.repository.UserRepository;
 import com.example.mymemories.security.JwtProvider;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepo;
@@ -19,15 +23,15 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final JwtProvider jwtProvider;
 
-    public AuthService(UserRepository userRepo,
-                       RoleRepository roleRepo,
-                       PasswordEncoder encoder,
-                       JwtProvider jwtProvider) {
-        this.userRepo = userRepo;
-        this.roleRepo = roleRepo;
-        this.encoder = encoder;
-        this.jwtProvider = jwtProvider;
-    }
+//    public AuthService(UserRepository userRepo,
+//                       RoleRepository roleRepo,
+//                       PasswordEncoder encoder,
+//                       JwtProvider jwtProvider) {
+//        this.userRepo = userRepo;
+//        this.roleRepo = roleRepo;
+//        this.encoder = encoder;
+//        this.jwtProvider = jwtProvider;
+//    }
 
     // REGISTER METHOD - FIXED
     public AuthResponse register(RegisterRequest req) {
@@ -45,22 +49,15 @@ public class AuthService {
         user.setEmail(req.getEmail());
         user.setPassword(encoder.encode(req.getPassword()));
 
-        // Add default role safely
-        Role userRole = roleRepo.findByName("ROLE_USER")  // FIXED: use roleRepo
-                .orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found!"));
-
-        user.addRole(userRole);  // Use helper method in User entity (recommended)
-
         // Save and return token
         userRepo.save(user);
 
         String token = jwtProvider.generateToken(
                 user.getUsername(),
-                user.getId(),
-                user.getRoles().stream().map(Role::getName).toList()
+                user.getId()
         );
 
-        return new AuthResponse();
+        return new AuthResponse(token, token);
     }
 
     // LOGIN METHOD - COMPLETELY FIXED
@@ -77,10 +74,10 @@ public class AuthService {
         // Step 3: Generate JWT
         String token = jwtProvider.generateToken(
                 user.getUsername(),
-                user.getId(),
-                user.getRoles().stream().map(Role::getName).toList()
+                user.getId()
+               
         );
 
-        return new AuthResponse();
+        return new AuthResponse(token, token);
     }
 }
