@@ -1,5 +1,6 @@
 package com.example.mymemories.controller;
 
+import com.example.mymemories.dto.ApiResponse;
 import com.example.mymemories.dto.AuthResponse;
 import com.example.mymemories.dto.LoginRequest;
 import com.example.mymemories.dto.LoginResponse;
@@ -21,10 +22,12 @@ public class AuthController {
 
    
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest req) {
-        AuthResponse response = authService.register(req);
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody RegisterRequest req) {
+        ApiResponse<AuthResponse> response = authService.register(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+
 
  
     @PostMapping("/login")

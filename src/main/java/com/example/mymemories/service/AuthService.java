@@ -1,5 +1,6 @@
 package com.example.mymemories.service;
 
+import com.example.mymemories.dto.ApiResponse;
 import com.example.mymemories.dto.AuthResponse;
 import com.example.mymemories.dto.LoginRequest;
 import com.example.mymemories.dto.LoginResponse;
@@ -21,12 +22,12 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepo;
-    private final RoleRepository roleRepo;
+//    private final RoleRepository roleRepo;
     private final PasswordEncoder encoder;
     private final JwtProvider jwtProvider;
 
 
-    public AuthResponse register(RegisterRequest req) {
+    public ApiResponse<AuthResponse> register(RegisterRequest req) {
         if (userRepo.existsByEmail(req.getEmail())) {
             throw new RuntimeException("Email is already in use");
         }
@@ -54,7 +55,7 @@ public class AuthService {
         res.setCreatedAt(saved.getCreatedAt().toString());
         res.setUpdatedAt(saved.getUpdatedAt().toString());
 
-        return res;
+        return new ApiResponse<>(true, "User registered successfully", res);
     }
 
 
@@ -79,12 +80,13 @@ public class AuthService {
         );
         System.out.println("LoginRequest email: " + req.getEmail());
         System.out.println("LoginRequest password: " + req.getPassword());
+        System.out.println("=================00========================");
+        
         LoginResponse bongchang = new LoginResponse();
         bongchang.setToken(token);
         bongchang.setMessage("User logined successfully");
         return bongchang;
 
-//        return new AuthResponse(token, token, null, token, token, false, token, token);
     }
      
 }
