@@ -2,6 +2,7 @@ package com.example.mymemories.controller;
 
 import com.example.mymemories.dto.AuthResponse;
 import com.example.mymemories.dto.LoginRequest;
+import com.example.mymemories.dto.LoginResponse;
 import com.example.mymemories.dto.RegisterRequest;
 import com.example.mymemories.service.AuthService;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,8 @@ public class AuthController {
 
  
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
-        AuthResponse response = authService.login(req);
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest req) {
+        LoginResponse response = authService.login(req);
         return ResponseEntity.ok(response);
     }
 }

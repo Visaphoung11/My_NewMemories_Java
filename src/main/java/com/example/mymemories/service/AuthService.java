@@ -2,7 +2,9 @@ package com.example.mymemories.service;
 
 import com.example.mymemories.dto.AuthResponse;
 import com.example.mymemories.dto.LoginRequest;
+import com.example.mymemories.dto.LoginResponse;
 import com.example.mymemories.dto.RegisterRequest;
+import com.example.mymemories.dto.UserResponse;
 import com.example.mymemories.entity.Role;
 import com.example.mymemories.entity.User;
 import com.example.mymemories.repository.RoleRepository;
@@ -23,19 +25,8 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final JwtProvider jwtProvider;
 
-//    public AuthService(UserRepository userRepo,
-//                       RoleRepository roleRepo,
-//                       PasswordEncoder encoder,
-//                       JwtProvider jwtProvider) {
-//        this.userRepo = userRepo;
-//        this.roleRepo = roleRepo;
-//        this.encoder = encoder;
-//        this.jwtProvider = jwtProvider;
-//    }
 
-    // REGISTER METHOD - FIXED
     public AuthResponse register(RegisterRequest req) {
-        // Check duplicates
         if (userRepo.existsByEmail(req.getEmail())) {
             throw new RuntimeException("Email is already in use");
         }
@@ -43,25 +34,32 @@ public class AuthService {
             throw new RuntimeException("Username is already taken");
         }
 
-        // Create user
         User user = new User();
         user.setUsername(req.getUsername());
         user.setEmail(req.getEmail());
         user.setPassword(encoder.encode(req.getPassword()));
 
-        // Save and return token
-        userRepo.save(user);
+        User saved = userRepo.save(user);
 
-        String token = jwtProvider.generateToken(
-                user.getUsername(),
-                user.getId()
-        );
+        String token = jwtProvider.generateToken(saved.getUsername(), saved.getId());
 
-        return new AuthResponse(token, token);
+        AuthResponse res = new AuthResponse();
+        res.setToken(token);
+        res.setMessage("User registered successfully");
+        res.setId(saved.getId());
+//        res.setFullName(saved.getUsername()); 
+        res.setEmail(saved.getEmail());
+        res.setUsername(saved.getUsername());
+        res.setEnabled(saved.isEnabled());
+        res.setCreatedAt(saved.getCreatedAt().toString());
+        res.setUpdatedAt(saved.getUpdatedAt().toString());
+
+        return res;
     }
 
-    // LOGIN METHOD - COMPLETELY FIXED
-    public AuthResponse login(LoginRequest req) {
+
+    // LOGIN METHOD 
+    public LoginResponse login(LoginRequest req) {
         // Step 1: Find user by email
         User user = userRepo.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
@@ -75,9 +73,18 @@ public class AuthService {
         String token = jwtProvider.generateToken(
                 user.getUsername(),
                 user.getId()
+                
+           
                
         );
+        System.out.println("LoginRequest email: " + req.getEmail());
+        System.out.println("LoginRequest password: " + req.getPassword());
+        LoginResponse bongchang = new LoginResponse();
+        bongchang.setToken(token);
+        bongchang.setMessage("User logined successfully");
+        return bongchang;
 
-        return new AuthResponse(token, token);
+//        return new AuthResponse(token, token, null, token, token, false, token, token);
     }
+     
 }
