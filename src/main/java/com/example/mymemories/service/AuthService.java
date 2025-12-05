@@ -26,7 +26,7 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final JwtProvider jwtProvider;
 
-
+       //Here I use generic type java with the type AuthResponse <AuthResponse>
     public ApiResponse<AuthResponse> register(RegisterRequest req) {
         if (userRepo.existsByEmail(req.getEmail())) {
             throw new RuntimeException("Email is already in use");
