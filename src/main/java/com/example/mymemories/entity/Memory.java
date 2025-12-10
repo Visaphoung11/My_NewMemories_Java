@@ -9,7 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+
 import jakarta.persistence.Table;
 import lombok.Data;
 @Data
@@ -27,7 +27,7 @@ public class Memory {
     private Instant createdAt;
 
     @Column(name = "content") 
-    private String content;
+    private String description;
     
     // Default Constructor (REQUIRED by Hibernate)
     public Memory() {}
@@ -35,14 +35,11 @@ public class Memory {
     // Custom Constructor for convenience (DTO -> Entity conversion)
     public Memory(String title, String description) {
         this.title = title;
-        this.content = description;
+        this.description = description;
         
     }
 
-	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 
 
 

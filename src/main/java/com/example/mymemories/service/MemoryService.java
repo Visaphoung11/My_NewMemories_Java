@@ -46,8 +46,28 @@ public class MemoryService {
         );
     }
 	
-	
-	
+	public Memory updateMemory(Long id, CreateMemoryRequest request) {
+	    // 1. Find the existing memory, or throw an exception (404 Not Found)
+	    Memory existingMemory = memoryRepository.findById(id)
+	        .orElseThrow(() -> new RuntimeException("Memory not found with ID: " + id));
+
+	    // 2. Update the fields
+	    existingMemory.setTitle(request.getTitle());
+	    existingMemory.setDescription(request.getDescription());
+	    
+	    // 3. Save the updated entity
+	    return memoryRepository.save(existingMemory);
+	}
+
+	public void deleteMemory(Long id) {
+	    // 1. Check if the memory exists (optional, but gives better error handling)
+	    if (!memoryRepository.existsById(id)) {
+	        throw new RuntimeException("Memory not found with ID: " + id);
+	    }
+	    
+	    // 2. Delete the memory
+	    memoryRepository.deleteById(id);
+	}
 	
 	
 	
