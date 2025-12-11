@@ -78,9 +78,9 @@ public class AuthService {
            
                
         );
-        System.out.println("LoginRequest email: " + req.getEmail());
-        System.out.println("LoginRequest password: " + req.getPassword());
-        System.out.println("=================00========================");
+//        System.out.println("LoginRequest email: " + req.getEmail());
+//        System.out.println("LoginRequest password: " + req.getPassword());
+//        System.out.println("=================00========================");
         
         LoginResponse bongchang = new LoginResponse();
         bongchang.setToken(token);

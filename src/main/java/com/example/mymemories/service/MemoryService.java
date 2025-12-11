@@ -8,26 +8,42 @@ import org.springframework.stereotype.Service;
 import com.example.mymemories.dto.CreateMemoryRequest;
 import com.example.mymemories.dto.MemoryResponse;
 import com.example.mymemories.entity.Memory;
+import com.example.mymemories.entity.User;
 import com.example.mymemories.repository.MemoryRepository;
+import com.example.mymemories.repository.UserRepository;
 
 @Service
 public class MemoryService {
 	private final MemoryRepository memoryRepository;
-	
-	public MemoryService(MemoryRepository memoryRepository) {
+	private final UserRepository userRepository;
+	public MemoryService(MemoryRepository memoryRepository, UserRepository userRepository) {
         this.memoryRepository = memoryRepository;
+        this.userRepository = userRepository;
     }
 	
-	public Memory createMemory(CreateMemoryRequest request) {
-        // 1. Convert DTO to Entity
-        Memory memory = new Memory(
-            request.getTitle(),
-            request.getDescription()
-        );
-         Memory savedMemory = memoryRepository.save(memory);
-        
-      
-         return savedMemory;
+	// Inside MemoryService.java
+
+	// Corrected createMemory method
+	public Memory createMemory(CreateMemoryRequest request, String authenticatedUsername) {
+
+	    User user = userRepository.findByUsername(authenticatedUsername)
+	        .orElseThrow(() -> new RuntimeException("User not found: " + authenticatedUsername));
+	        
+	    // 2. Convert DTO to Entity
+	    // *** CORRECTION: Only pass title and content to the constructor ***
+	    Memory memory = new Memory(
+	        request.getTitle(),
+	        request.getContent() 
+	        // authenticatedUsername REMOVED from constructor
+	    );
+	    
+	    // 3. Set the User relationship (LINK THE MEMORY TO THE OWNER) - THIS IS PERFECT
+	    memory.setUser(user); 
+	    
+	    // 4. Save the memory
+	    Memory savedMemory = memoryRepository.save(memory);
+	    
+	    return savedMemory;
 	}
 	
 	public List<MemoryResponse> getAllMemories() {
@@ -37,37 +53,75 @@ public class MemoryService {
                 .collect(Collectors.toList());
     }
 	private MemoryResponse mapToDto(Memory memory) {
-        // Use the constructor we created in the DTO
-        return new MemoryResponse(
-            memory.getId(),
-            memory.getTitle(),
-            memory.getDescription(),
-            memory.getCreatedAt()
-        );
-    }
+	    // Use the constructor we created in the DTO
+	    return new MemoryResponse(
+	        memory.getId(),
+	        memory.getTitle(),
+	        memory.getContent(),
+	        memory.getCreatedAt()
+	    );
+	}
 	
-	public Memory updateMemory(Long id, CreateMemoryRequest request) {
-	    // 1. Find the existing memory, or throw an exception (404 Not Found)
+	// Inside MemoryService.java
+
+	public Memory updateMemory(Long id, CreateMemoryRequest request, String authenticatedUsername) { // <-- ADD USERNAME
+	    
+	    // 1. Find the existing memory
 	    Memory existingMemory = memoryRepository.findById(id)
 	        .orElseThrow(() -> new RuntimeException("Memory not found with ID: " + id));
 
-	    // 2. Update the fields
+	    // 2. AUTHORIZATION CHECK: Check if the memory belongs to the authenticated user
+	    if (!existingMemory.getUser().getUsername().equals(authenticatedUsername)) { // <-- FIXED LINE
+	        throw new SecurityException("User is not authorized to delete this memory.");
+	    }
+	    // Note: Use 'SecurityException' here, which the controller should handle (403 Forbidden).
+
+	    // 3. Update the fields
 	    existingMemory.setTitle(request.getTitle());
-	    existingMemory.setDescription(request.getDescription());
+	    existingMemory.setContent(request.getContent());
 	    
-	    // 3. Save the updated entity
+	    // 4. Save the updated entity
 	    return memoryRepository.save(existingMemory);
 	}
 
-	public void deleteMemory(Long id) {
-	    // 1. Check if the memory exists (optional, but gives better error handling)
-	    if (!memoryRepository.existsById(id)) {
-	        throw new RuntimeException("Memory not found with ID: " + id);
+	// Inside MemoryService.java
+
+	public void deleteMemory(Long id, String authenticatedUsername) { // <-- ADD USERNAME
+	    
+	    // 1. Find the existing memory
+	    Memory existingMemory = memoryRepository.findById(id)
+	        .orElseThrow(() -> new RuntimeException("Memory not found with ID: " + id));
+	    
+	    // 2. AUTHORIZATION CHECK: Check if the memory belongs to the authenticated user
+	    if (!existingMemory.getUser().getUsername().equals(authenticatedUsername)) { // <-- FIXED LINE
+	        throw new SecurityException("User is not authorized to delete this memory.");
 	    }
 	    
-	    // 2. Delete the memory
+	    // 3. Delete the memory
 	    memoryRepository.deleteById(id);
 	}
+
+	// Inside MemoryService.java
+
+	// NOTE: The name of this method must match the one used in your controller
+	public List<MemoryResponse> getAllMemoriesByUser(String authenticatedUsername) {
+	    // 1. Find the User
+	    User user = userRepository.findByUsername(authenticatedUsername)
+	        .orElseThrow(() -> new RuntimeException("User not found: " + authenticatedUsername));
+	        
+	    
+	    return memoryRepository.findByUser(user).stream() // Assuming findByUser is available
+	        .map(this::mapToDto)
+	        .collect(Collectors.toList());
+	}
+
+
+	public List<MemoryResponse> getAllMemoriesAdmin() { 
+	    return memoryRepository.findAll().stream()
+	        .map(this::mapToDto)
+	        .collect(Collectors.toList());
+	}
+
 	
 	
 	

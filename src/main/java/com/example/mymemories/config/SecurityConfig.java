@@ -1,7 +1,5 @@
 package com.example.mymemories.config;
 
-
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,29 +9,49 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration
+import com.example.mymemories.security.JwtAuthenticationFilter;
+
+@Configuration // Marks this class as a source of bean definitions
 public class SecurityConfig {
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+	    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+	}
+   
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	    http
+	        // 1. MUST BE HERE TO STOP THE 403 ERROR
+	        .csrf(csrf -> csrf.disable()) // 
+	        
+	        
+	        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+	        
+	        // 3. Register the custom filter
+	        .addFilterBefore(
+	            jwtAuthenticationFilter, 
+	            UsernamePasswordAuthenticationFilter.class
+	        )
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/memories/**").permitAll()
-                .anyRequest().authenticated()
-            );
-        return http.build();
-    }
+	        // 4. Define authorization rules
+	        .authorizeHttpRequests(auth -> auth
+	            .requestMatchers("/api/auth/**").permitAll()
+	            .requestMatchers("/api/memories/**").authenticated()
+	            .anyRequest().authenticated()
+	        );
 
+	    return http.build(); // Don't forget this line!
+	}
+
+    // 2. PASSWORD ENCODER BEAN
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // 3. AUTHENTICATION MANAGER BEAN
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

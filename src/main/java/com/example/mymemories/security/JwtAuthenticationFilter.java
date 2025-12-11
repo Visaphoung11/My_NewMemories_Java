@@ -53,7 +53,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        // 1. Define the paths the filter should ignore (skip)
+        // IMPORTANT: These paths MUST match what you defined as permitAll() in SecurityConfig
+        String path = request.getRequestURI();
+        
+       
+        return path.startsWith("/api/auth/"); 
+        
+       
+    }
     private String extractTokenFromRequest(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
