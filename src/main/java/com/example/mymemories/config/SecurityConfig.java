@@ -13,9 +13,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.example.mymemories.security.JwtAuthenticationFilter;
 
-@Configuration // Marks this class as a source of bean definitions
+@Configuration 
 public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	// I injected JwtAuthenticationFilter and create Constructor
 	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
 	    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
 	}
@@ -42,7 +43,7 @@ public class SecurityConfig {
 	            .anyRequest().authenticated()
 	        );
 
-	    return http.build(); // Don't forget this line!
+	    return http.build(); 
 	}
 
     // 2. PASSWORD ENCODER BEAN

@@ -1,6 +1,7 @@
 package com.example.mymemories.entity;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -11,9 +12,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data; 
 import lombok.NoArgsConstructor;
+import jakarta.persistence.CascadeType;
 @NoArgsConstructor
 @Data 
 @Entity
@@ -40,7 +43,9 @@ public class Memory {
     @ManyToOne // Many Memories belong to One User
     @JoinColumn(name = "user_id", nullable = false) // Defines the foreign key column in the 'memories' table
     private User user; // This MUST be the User entity class type
-
+    
+    @OneToMany(mappedBy = "memory", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> imageList; 
     
     // CONSTRUCTORS (Lombok's @Data handles NoArgsConstructor and AllArgsConstructor)
     

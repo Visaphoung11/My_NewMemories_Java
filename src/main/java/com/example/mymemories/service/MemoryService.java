@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.mymemories.dto.CreateMemoryRequest;
 import com.example.mymemories.dto.MemoryResponse;
+import com.example.mymemories.entity.Image;
 import com.example.mymemories.entity.Memory;
 import com.example.mymemories.entity.User;
 import com.example.mymemories.repository.MemoryRepository;
@@ -16,11 +17,13 @@ import com.example.mymemories.repository.UserRepository;
 public class MemoryService {
 	private final MemoryRepository memoryRepository;
 	private final UserRepository userRepository;
+	
+	
 	public MemoryService(MemoryRepository memoryRepository, UserRepository userRepository) {
         this.memoryRepository = memoryRepository;
         this.userRepository = userRepository;
     }
-	// Corrected createMemory method
+	
 	public Memory createMemory(CreateMemoryRequest request, String authenticatedUsername) {
 
 	    User user = userRepository.findByUsername(authenticatedUsername)
@@ -37,25 +40,39 @@ public class MemoryService {
 	    // 3. Set the User relationship (LINK THE MEMORY TO THE OWNER) - THIS IS PERFECT
 	    memory.setUser(user); 
 	    
-	    // 4. Save the memory
-	    Memory savedMemory = memoryRepository.save(memory);
+	    if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+	        
+	        List<Image> imageList = request.getImageUrls().stream()
+	            // Create a new Image entity for each URL, linking it back to the Memory object
+	            .map(url -> new Image(url, memory)) 
+	            .collect(Collectors.toList());
+	            
+	        memory.setImageList(imageList);
+	    }
 	    
-	    return savedMemory;
+	    return memoryRepository.save(memory);
 	}
-	
+
 	public List<MemoryResponse> getAllMemories() {
         return memoryRepository.findAll().stream()
                 // Convert each Memory Entity to a MemoryResponse DTO
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
+	
 	private MemoryResponse mapToDto(Memory memory) {
-	    // Use the constructor we created in the DTO
+	    
+	    // Extract Image URLs from the entity list
+	    List<String> imageUrls = memory.getImageList().stream()
+	        .map(Image::getImageUrl) // Use the getter from the Image entity
+	        .collect(Collectors.toList());
+	        
 	    return new MemoryResponse(
 	        memory.getId(),
 	        memory.getTitle(),
 	        memory.getContent(),
-	        memory.getCreatedAt()
+	        memory.getCreatedAt(),
+	        imageUrls 
 	    );
 	}
 	
