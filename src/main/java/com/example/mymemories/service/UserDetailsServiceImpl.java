@@ -23,7 +23,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         this.userRepository = repository;
 
     }
- // Corrected loadUserByUsername method
+
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
@@ -33,7 +33,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .orElse(userRepository.findByUsername(usernameOrEmail)
                         .orElseThrow(() -> new UsernameNotFoundException("User not found")));
 
-        // 2. Define Authorities (The FIX)
+       
         // Since getRoles() is not defined, we assign a default "ROLE_USER" authority.
         List<GrantedAuthority> authorities = Collections.singletonList(
              new SimpleGrantedAuthority("ROLE_USER")
@@ -42,9 +42,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // 3. Return the Spring Security UserDetails object
         // NOTE: I recommend using user.getUsername() for the principal name
         return new org.springframework.security.core.userdetails.User(
-            user.getUsername(), // Use the username as the principal name (recommended)
+            user.getUsername(), 
             user.getPassword(), 
-            authorities // Now passes a non-null list of authorities
+            authorities 
         );
     }
 }

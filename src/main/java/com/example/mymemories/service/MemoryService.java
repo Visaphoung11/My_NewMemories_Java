@@ -20,9 +20,6 @@ public class MemoryService {
         this.memoryRepository = memoryRepository;
         this.userRepository = userRepository;
     }
-	
-	// Inside MemoryService.java
-
 	// Corrected createMemory method
 	public Memory createMemory(CreateMemoryRequest request, String authenticatedUsername) {
 
@@ -62,9 +59,7 @@ public class MemoryService {
 	    );
 	}
 	
-	// Inside MemoryService.java
-
-	public Memory updateMemory(Long id, CreateMemoryRequest request, String authenticatedUsername) { // <-- ADD USERNAME
+public Memory updateMemory(Long id, CreateMemoryRequest request, String authenticatedUsername) { // <-- ADD USERNAME
 	    
 	    // 1. Find the existing memory
 	    Memory existingMemory = memoryRepository.findById(id)
@@ -101,16 +96,15 @@ public class MemoryService {
 	    memoryRepository.deleteById(id);
 	}
 
-	// Inside MemoryService.java
 
-	// NOTE: The name of this method must match the one used in your controller
+	
 	public List<MemoryResponse> getAllMemoriesByUser(String authenticatedUsername) {
-	    // 1. Find the User
+	 
 	    User user = userRepository.findByUsername(authenticatedUsername)
 	        .orElseThrow(() -> new RuntimeException("User not found: " + authenticatedUsername));
 	        
 	    
-	    return memoryRepository.findByUser(user).stream() // Assuming findByUser is available
+	    return memoryRepository.findByUser(user).stream() 
 	        .map(this::mapToDto)
 	        .collect(Collectors.toList());
 	}

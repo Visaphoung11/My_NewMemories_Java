@@ -1,6 +1,5 @@
 package com.example.mymemories.security;
 
-import com.example.mymemories.service.UserDetailsServiceImpl;
 import io.micrometer.common.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,6 +19,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
     private final UserDetailsService userDetailsService;
+    // We need to inject JwtProvider & UserDetailsService
     
  // This is a constructor, as you as see the name must be the same as the class
     public JwtAuthenticationFilter(@NonNull JwtProvider jwtProvider,
