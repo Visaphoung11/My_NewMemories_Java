@@ -13,7 +13,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data; // Provides getters, setters, and constructors automatically
-
+import lombok.NoArgsConstructor;
+@NoArgsConstructor
 @Data // Important: Generates getId(), getTitle(), etc., resolving previous errors
 @Entity
 @Table(name = "memories")
