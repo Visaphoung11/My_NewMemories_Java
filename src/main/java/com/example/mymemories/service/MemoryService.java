@@ -1,27 +1,36 @@
 package com.example.mymemories.service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.example.mymemories.dto.CreateMemoryRequest;
 import com.example.mymemories.dto.MemoryResponse;
+import com.example.mymemories.entity.Category;
 import com.example.mymemories.entity.Image;
 import com.example.mymemories.entity.Memory;
 import com.example.mymemories.entity.User;
+import com.example.mymemories.repository.CategoryRepository;
 import com.example.mymemories.repository.MemoryRepository;
 import com.example.mymemories.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
+@Transactional // <--- Apply to the whole class for all methods
 @Service
 public class MemoryService {
 	private final MemoryRepository memoryRepository;
 	private final UserRepository userRepository;
+	private final CategoryRepository categoryRepository;
 	
 	
-	public MemoryService(MemoryRepository memoryRepository, UserRepository userRepository) {
+	
+	public MemoryService(MemoryRepository memoryRepository, UserRepository userRepository, CategoryRepository categoryRepository) {
         this.memoryRepository = memoryRepository;
         this.userRepository = userRepository;
+        this.categoryRepository = categoryRepository;
     }
 	
 	public Memory createMemory(CreateMemoryRequest request, String authenticatedUsername) {
@@ -49,7 +58,24 @@ public class MemoryService {
 	            
 	        memory.setImageList(imageList);
 	    }
-	    
+	    if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
+	        
+	        Set<Long> requestedIds = request.getCategoryIds();
+	        
+	        // 1. Fetch the actual Category entities
+	        List<Category> categoryList = categoryRepository.findAllById(requestedIds);
+
+	        // 2. Validation Check (Recommended)
+	        if (categoryList.size() != requestedIds.size()) {
+	            // You would typically throw an exception here, like:
+	            // throw new ResourceNotFoundException("One or more category IDs are invalid.");
+	            
+	            // For now, let's just log or proceed with valid categories
+	        }
+	        
+	        // 3. Set the collection on the Memory entity
+	        memory.setCategories(new HashSet<>(categoryList));
+	    }
 	    return memoryRepository.save(memory);
 	}
 
@@ -60,42 +86,74 @@ public class MemoryService {
                 .collect(Collectors.toList());
     }
 	
-	private MemoryResponse mapToDto(Memory memory) {
+	public MemoryResponse mapToDto(Memory memory) { 
 	    
-	    // Extract Image URLs from the entity list
+	    // 1. Extract Image URLs (Existing Logic)
 	    List<String> imageUrls = memory.getImageList().stream()
-	        .map(Image::getImageUrl) // Use the getter from the Image entity
+	        .map(Image::getImageUrl)
 	        .collect(Collectors.toList());
 	        
+	    // 2. Extract Category Names 
+	    Set<String> categoryNames = memory.getCategories().stream()
+	        .map(Category::getName)
+	        .collect(Collectors.toSet());
+	    String username = memory.getUser().getUsername();
+	    // 3. Return the DTO with all fields
 	    return new MemoryResponse(
 	        memory.getId(),
 	        memory.getTitle(),
 	        memory.getContent(),
 	        memory.getCreatedAt(),
-	        imageUrls 
+	        imageUrls,
+	        categoryNames,username
 	    );
 	}
 	
-public Memory updateMemory(Long id, CreateMemoryRequest request, String authenticatedUsername) { // <-- ADD USERNAME
+	public Memory updateMemory(Long id, CreateMemoryRequest request, String authenticatedUsername) {
 	    
-	    // 1. Find the existing memory
+	    // 1. Find the existing memory (and implicitly load images/categories)
 	    Memory existingMemory = memoryRepository.findById(id)
 	        .orElseThrow(() -> new RuntimeException("Memory not found with ID: " + id));
 
-	    // 2. AUTHORIZATION CHECK: Check if the memory belongs to the authenticated user
-	    if (!existingMemory.getUser().getUsername().equals(authenticatedUsername)) { // <-- FIXED LINE
-	        throw new SecurityException("User is not authorized to delete this memory.");
+	    // 2. AUTHORIZATION CHECK (Security is perfect here)
+	    if (!existingMemory.getUser().getUsername().equals(authenticatedUsername)) {
+	        throw new SecurityException("User is not authorized to update this memory.");
 	    }
-	    // Note: Use 'SecurityException' here, which the controller should handle (403 Forbidden).
 
-	    // 3. Update the fields
+	    // 3. Update CORE fields
 	    existingMemory.setTitle(request.getTitle());
 	    existingMemory.setContent(request.getContent());
 	    
+	    // A. Update Images (Delete existing, add new list)
+	    if (request.getImageUrls() != null) {
+	        // Clear existing image list (handles database cleanup if cascade is set, 
+	        // otherwise you need imageRepository.deleteAll(existingMemory.getImageList()))
+	        existingMemory.getImageList().clear(); 
+	        
+	        List<Image> newImageList = request.getImageUrls().stream()
+	            .map(url -> new Image(url, existingMemory)) // Create new Image entity linked to memory
+	            .collect(Collectors.toList());
+	            
+	        existingMemory.getImageList().addAll(newImageList);
+	    }
+	    
+	    // B. Update Categories (Simple removal and re-adding of entities)
+	    if (request.getCategoryIds() != null) {
+	        // Clear old categories
+	        existingMemory.getCategories().clear(); 
+	        
+	        // Fetch new Category entities from the database
+	        Set<Long> requestedIds = request.getCategoryIds();
+	        List<Category> newCategoryList = categoryRepository.findAllById(requestedIds);
+
+	        existingMemory.getCategories().addAll(new HashSet<>(newCategoryList));
+	    }
+	    
+	    // ----------------------------------------------------------------------
+
 	    // 4. Save the updated entity
 	    return memoryRepository.save(existingMemory);
 	}
-
 	// Inside MemoryService.java
 
 	public void deleteMemory(Long id, String authenticatedUsername) { // <-- ADD USERNAME
@@ -121,7 +179,7 @@ public Memory updateMemory(Long id, CreateMemoryRequest request, String authenti
 	        .orElseThrow(() -> new RuntimeException("User not found: " + authenticatedUsername));
 	        
 	    
-	    return memoryRepository.findByUser(user).stream() 
+	    return memoryRepository.findAllByUser(user).stream() 
 	        .map(this::mapToDto)
 	        .collect(Collectors.toList());
 	}

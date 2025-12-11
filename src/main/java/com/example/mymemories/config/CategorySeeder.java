@@ -21,7 +21,7 @@ public class CategorySeeder implements CommandLineRunner {
 
       for (String name : bongchangksr) {
           if (!categoryRepository.existsByName(name)) {
-              categoryRepository.save(new Category(null, name));
+              categoryRepository.save(new Category());
           }
       }
   }

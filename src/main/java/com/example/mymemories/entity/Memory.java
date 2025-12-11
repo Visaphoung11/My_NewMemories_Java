@@ -1,58 +1,88 @@
 package com.example.mymemories.entity;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import lombok.EqualsAndHashCode; // <--- NEW IMPORT
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Data; 
+import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import jakarta.persistence.CascadeType;
 @NoArgsConstructor
+@Getter // Use @Getter and @Setter instead of @Data
+@Setter
 @Data 
 @Entity
 @Table(name = "memories")
 public class Memory {
 
-    // 1. PRIMARY KEY FIELD (Required by JPA and referenced by getId() in mapToDto)
+    // 1. PRIMARY KEY
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // 2. TIMESTAMPS FIELD (Required for getCreatedAt() in mapToDto)
     @CreationTimestamp
-    private Instant createdAt;
-    
-    // 3. REGULAR FIELDS (Already included in your update)
-    @Column(nullable = false) // Add column annotation for robustness
-    private String title;
-    
-    @Column(name = "content", columnDefinition = "TEXT") // Use TEXT for potentially long content
-    private String content;
 
-    // 4. ENTITY RELATIONSHIP (The key fix)
-    @ManyToOne // Many Memories belong to One User
-    @JoinColumn(name = "user_id", nullable = false) // Defines the foreign key column in the 'memories' table
-    private User user; // This MUST be the User entity class type
+    private Instant createdAt;
+
+
+
+    @Column(nullable = false)
+
+    private String title;
+
+
+    @Column(name = "content", columnDefinition = "TEXT") // Use TEXT for potentially long content
+
+    private String content;
+    // ... (createdAt, title, content fields) ...
     
+    // 2. USER RELATIONSHIP (Many-to-One)
+    @ManyToOne 
+    @JoinColumn(name = "user_id", nullable = false) 
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private User user; 
+    @EqualsAndHashCode.Exclude
+    // 3. IMAGE RELATIONSHIP (One-to-Many)
     @OneToMany(mappedBy = "memory", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Image> imageList; 
-    
-    // CONSTRUCTORS (Lombok's @Data handles NoArgsConstructor and AllArgsConstructor)
-    
-    // Custom Constructor for DTO -> Entity conversion (as used in MemoryService)
+    // IMPORTANT: Initializing the collection is a good practice!
+    private List<Image> imageList = new ArrayList<>(); 
+    @EqualsAndHashCode.Exclude
+    // 4. CATEGORY RELATIONSHIP (Many-to-Many)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {
+        CascadeType.PERSIST,  
+        CascadeType.MERGE     
+    })
+    @JoinTable(
+        name = "memory_categories", 
+        joinColumns = @JoinColumn(name = "memory_id"), 
+        inverseJoinColumns = @JoinColumn(name = "category_id") 
+    )
+    private Set<Category> categories = new HashSet<>(); // Must be here!
+
+
+
     public Memory(String title, String content) {
         this.title = title;
         this.content = content;
-        // The 'user' relationship is set separately in the service: memory.setUser(user);
     }
 }

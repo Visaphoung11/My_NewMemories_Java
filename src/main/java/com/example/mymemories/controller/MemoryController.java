@@ -33,24 +33,30 @@ public class MemoryController {
 
     // CREATE MEMORY (Requires token and links memory to user)
 	@PostMapping
-    public ResponseEntity<MemoryCreationResponse> createMemory(
-        @RequestBody CreateMemoryRequest request,
-        Principal principal // <-- Captures authenticated user from JWT
-    ) {
-
-        
-		String authenticatedUsername = principal.getName();
-        
-       
-		Memory newMemory = memoryService.createMemory(request, authenticatedUsername);
-        
-		MemoryCreationResponse response = new MemoryCreationResponse(
-                true,
-                "Memory created successfully!",
-                newMemory
-            );
-        
-		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	public ResponseEntity<MemoryCreationResponse> createMemory(
+	    @RequestBody CreateMemoryRequest request,
+	    Principal principal // <-- Captures authenticated user from JWT
+	) {
+	    
+	    // 1. Get the authenticated username
+	    String authenticatedUsername = principal.getName();
+	    
+	    // 2. Call service layer to create and persist the raw JPA entity
+	    Memory newMemory = memoryService.createMemory(request, authenticatedUsername);
+	    
+	    // 🛑 CRITICAL FIX ADDED HERE: Convert the JPA entity to the safe DTO
+	    // Ensure memoryService.mapToDto is public
+	    MemoryResponse memoryDto = memoryService.mapToDto(newMemory); 
+	    
+	    // 3. Create the response object using the SAFE DTO
+	    // This resolves the "unresolved variable" error and the future serialization error
+	    MemoryCreationResponse response = new MemoryCreationResponse(
+	            true,
+	            "Memory created successfully!",
+	            memoryDto // <-- This variable is now correctly defined
+	        );
+	    
+	    return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
     // GET ALL MEMORIES (Requires token and retrieves only the user's memories)
@@ -59,6 +65,7 @@ public class MemoryController {
         Principal principal // <-- Captures authenticated user
     ) {
         String authenticatedUsername = principal.getName();
+        
         
         // Call service method to filter memories by user
         List<MemoryResponse> memories = memoryService.getAllMemoriesByUser(authenticatedUsername); 
@@ -83,13 +90,16 @@ public class MemoryController {
 	) {
 	    String authenticatedUsername = principal.getName();
 	    
-	    // If updateMemory throws SecurityException or RuntimeException, the global handler catches it
 	    Memory updatedMemory = memoryService.updateMemory(id, request, authenticatedUsername); 
 	    
+	    // 🛑 CRITICAL STEP: Convert the JPA entity to the DTO
+	    MemoryResponse memoryDto = memoryService.mapToDto(updatedMemory); 
+
+	    // Use the updated DTO structure
 	    MemoryCreationResponse response = new MemoryCreationResponse(
 	        true,
 	        "Memory updated successfully!",
-	        updatedMemory
+	        memoryDto // <-- Pass the DTO (MemoryResponse)
 	    );
 	    
 	    return ResponseEntity.ok(response);

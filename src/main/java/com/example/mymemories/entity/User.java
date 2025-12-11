@@ -5,13 +5,11 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
+import java.time.LocalDateTime;
+
+
+import com.fasterxml.jackson.annotation.JsonIgnore; // <-- NEW IMPORT
 
 @Entity
 @Data
@@ -21,13 +19,13 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)  // Auto-increment Long
     private Long id;  // ← CHANGED FROM UUID TO Long
-
+    @JsonIgnore
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
     @Column(nullable = false, unique = true, length = 150)
     private String email;
-
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
     

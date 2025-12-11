@@ -1,19 +1,15 @@
 package com.example.mymemories.dto;
 
-import com.example.mymemories.entity.Memory;
-
-
 import lombok.Data;
 @Data
 public class MemoryCreationResponse {
 	private boolean success;
 	private String message;
-    private Memory createdMemory;
-    
-    public MemoryCreationResponse(boolean success, String message, Memory createdMemory) {
+	private MemoryResponse createdMemory;    
+    public MemoryCreationResponse(boolean success, String message, MemoryResponse newMemory) {
         this.success = success;
         this.message = message;
-        this.createdMemory = createdMemory;
+        this.createdMemory = newMemory;
     }
     
 }
