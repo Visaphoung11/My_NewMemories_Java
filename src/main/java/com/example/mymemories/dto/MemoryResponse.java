@@ -3,6 +3,11 @@ package com.example.mymemories.dto;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.example.mymemories.entity.Category;
+import com.example.mymemories.entity.Image;
+import com.example.mymemories.entity.Memory;
 
 import lombok.Data;
 
@@ -26,5 +31,29 @@ public class MemoryResponse {
         this.imageUrls = imageUrls;
         this.categoryNames = categoryNames;
         this.createdAt = createdAt;
+    }
+
+ //  Entity → DTO mapper
+    public static MemoryResponse from(Memory memory) {
+
+        List<String> imageUrls = memory.getImageList()
+                .stream()
+                .map(Image::getImageUrl)
+                .toList();
+
+        Set<String> categoryNames = memory.getCategories()
+                .stream()
+                .map(Category::getName)
+                .collect(Collectors.toSet());
+
+        return new MemoryResponse(
+                memory.getId(),
+                memory.getTitle(),
+                memory.getContent(),          // or getDescription() if that's your field
+                memory.getCreatedAt(),
+                imageUrls,
+                categoryNames,
+                memory.getUser().getUsername()
+        );
     }
 }

@@ -46,7 +46,7 @@ public class MemoryService {
 	        // authenticatedUsername REMOVED from constructor
 	    );
 	    
-	    // 3. Set the User relationship (LINK THE MEMORY TO THE OWNER) - THIS IS PERFECT
+	    // 3. Set the User relationship (LINK THE MEMORY TO THE OWNER)
 	    memory.setUser(user); 
 	    
 	    if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
@@ -154,7 +154,7 @@ public class MemoryService {
 	    // 4. Save the updated entity
 	    return memoryRepository.save(existingMemory);
 	}
-	// Inside MemoryService.java
+	
 
 	public void deleteMemory(Long id, String authenticatedUsername) { // <-- ADD USERNAME
 	    
@@ -163,7 +163,7 @@ public class MemoryService {
 	        .orElseThrow(() -> new RuntimeException("Memory not found with ID: " + id));
 	    
 	    // 2. AUTHORIZATION CHECK: Check if the memory belongs to the authenticated user
-	    if (!existingMemory.getUser().getUsername().equals(authenticatedUsername)) { // <-- FIXED LINE
+	    if (!existingMemory.getUser().getUsername().equals(authenticatedUsername)) {
 	        throw new SecurityException("User is not authorized to delete this memory.");
 	    }
 	    
@@ -189,6 +189,19 @@ public class MemoryService {
 	    return memoryRepository.findAll().stream()
 	        .map(this::mapToDto)
 	        .collect(Collectors.toList());
+	}
+	// Return type to MemoryResponse
+	public MemoryResponse getMemoryById (Long id, String authenticatedUsername) {
+		// Logic to find memoryById
+		 Memory memory = memoryRepository.findById(id)
+			        .orElseThrow(() -> new RuntimeException("Memory not found with this ID: " + id));
+		// 2. Authorization check (same logic as update)
+		 if(!memory.getUser().getUsername().equals(authenticatedUsername)) {
+			 throw new SecurityException("User is not authorized to view this memory");
+		 }
+		 // 3. Map Entity → DTO using constructor
+		 return MemoryResponse.from(memory);
+		
 	}
 
 	

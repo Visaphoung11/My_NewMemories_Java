@@ -23,4 +23,5 @@ public interface MemoryRepository extends JpaRepository<Memory, Long> {
 	@Query("SELECT m FROM Memory m WHERE m.user = :user")
 	@EntityGraph(attributePaths = {"imageList", "categories"})
 	List<Memory> findMemoriesByUser(@Param("user") User user);
+
 }

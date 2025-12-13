@@ -18,7 +18,8 @@ public class CategorySeeder implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
       List<String> bongchangksr = Arrays.asList("Tour", "Party", "Love", "Family", "Friends", "Study", "Personal");
-
+   System.out.println(bongchangksr);
+   
       for (String name : bongchangksr) {
           if (!categoryRepository.existsByName(name)) {
               categoryRepository.save(new Category());
