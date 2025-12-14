@@ -105,26 +105,45 @@ public class MemoryController {
 	    return ResponseEntity.ok(response);
 	}
 	// Get memory by id best practice use try catch
+//	@GetMapping("/{id}")
+//	public ResponseEntity<ListResponseDTO<MemoryResponse>> getSingleMemory(
+//	        @PathVariable Long id,
+//	        Principal principal
+//	) {
+//	    try {
+//	        String authenticatedUsername = principal.getName();
+//	        MemoryResponse memoryDto = memoryService.getMemoryById(id, authenticatedUsername);
+//	        List<MemoryResponse> dataList = List.of(memoryDto);
+//
+//	        return ResponseEntity.ok(
+//	                new ListResponseDTO<>(true, "Memory fetched successfully", dataList)
+//	        );
+//
+//	    } catch (RuntimeException e) {
+//	        // Return failed response with 404 or 403
+//	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//	                .body(new ListResponseDTO<>(false, e.getMessage(), List.of()));
+//	    }
+//	}
+	
+	
 	@GetMapping("/{id}")
 	public ResponseEntity<ListResponseDTO<MemoryResponse>> getSingleMemory(
 	        @PathVariable Long id,
 	        Principal principal
 	) {
-	    try {
-	        String authenticatedUsername = principal.getName();
-	        MemoryResponse memoryDto = memoryService.getMemoryById(id, authenticatedUsername);
-	        List<MemoryResponse> dataList = List.of(memoryDto);
+	    MemoryResponse memoryDto =
+	            memoryService.getMemoryById(id, principal.getName());
 
-	        return ResponseEntity.ok(
-	                new ListResponseDTO<>(true, "Memory fetched successfully", dataList)
-	        );
-
-	    } catch (RuntimeException e) {
-	        // Return failed response with 404 or 403
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-	                .body(new ListResponseDTO<>(false, e.getMessage(), List.of()));
-	    }
+	    return ResponseEntity.ok(
+	            new ListResponseDTO<>(
+	                    true,
+	                    "Memory fetched successfully",
+	                    List.of(memoryDto)
+	            )
+	    );
 	}
+
 
     // DELETE MEMORY (Requires token and verifies ownership before deleting)
     @DeleteMapping("/{id}")

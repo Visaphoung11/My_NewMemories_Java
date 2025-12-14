@@ -13,6 +13,8 @@ import com.example.mymemories.entity.Category;
 import com.example.mymemories.entity.Image;
 import com.example.mymemories.entity.Memory;
 import com.example.mymemories.entity.User;
+import com.example.mymemories.exception.ResourceNotFoundException;
+import com.example.mymemories.exception.UnauthorizedException;
 import com.example.mymemories.repository.CategoryRepository;
 import com.example.mymemories.repository.MemoryRepository;
 import com.example.mymemories.repository.UserRepository;
@@ -171,8 +173,6 @@ public class MemoryService {
 	    memoryRepository.deleteById(id);
 	}
 
-
-	
 	public List<MemoryResponse> getAllMemoriesByUser(String authenticatedUsername) {
 	 
 	    User user = userRepository.findByUsername(authenticatedUsername)
@@ -194,19 +194,14 @@ public class MemoryService {
 	public MemoryResponse getMemoryById (Long id, String authenticatedUsername) {
 		// Logic to find memoryById
 		 Memory memory = memoryRepository.findById(id)
-			        .orElseThrow(() -> new RuntimeException("Memory not found with this ID: " + id));
+			        .orElseThrow(() -> new ResourceNotFoundException("Memory not found with this ID: " + id));
 		// 2. Authorization check (same logic as update)
 		 if(!memory.getUser().getUsername().equals(authenticatedUsername)) {
-			 throw new SecurityException("User is not authorized to view this memory");
+			 throw new UnauthorizedException("User is not authorized to view this memory");
 		 }
 		 // 3. Map Entity → DTO using constructor
 		 return MemoryResponse.from(memory);
 		
 	}
-
-	
-	
-	
-	
 	
 }

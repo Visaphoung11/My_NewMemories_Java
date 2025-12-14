@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import com.example.mymemories.entity.Category;
 import com.example.mymemories.entity.Image;
 import com.example.mymemories.entity.Memory;
+import com.example.mymemories.entity.User;
 
 import lombok.Data;
 
