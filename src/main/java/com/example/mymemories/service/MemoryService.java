@@ -5,9 +5,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
 import com.example.mymemories.dto.CreateMemoryRequest;
+import com.example.mymemories.dto.ListResponseDTO;
 import com.example.mymemories.dto.MemoryResponse;
 import com.example.mymemories.entity.Category;
 import com.example.mymemories.entity.Image;
@@ -128,8 +132,7 @@ public class MemoryService {
 	    
 	    // A. Update Images (Delete existing, add new list)
 	    if (request.getImageUrls() != null) {
-	        // Clear existing image list (handles database cleanup if cascade is set, 
-	        // otherwise you need imageRepository.deleteAll(existingMemory.getImageList()))
+	        
 	        existingMemory.getImageList().clear(); 
 	        
 	        List<Image> newImageList = request.getImageUrls().stream()
@@ -173,15 +176,30 @@ public class MemoryService {
 	    memoryRepository.deleteById(id);
 	}
 
-	public List<MemoryResponse> getAllMemoriesByUser(String authenticatedUsername) {
-	 
-	    User user = userRepository.findByUsername(authenticatedUsername)
-	        .orElseThrow(() -> new RuntimeException("User not found: " + authenticatedUsername));
-	        
-	    
-	    return memoryRepository.findAllByUser(user).stream() 
-	        .map(this::mapToDto)
-	        .collect(Collectors.toList());
+	public ListResponseDTO<MemoryResponse> getAllMemoriesByUser(String username, int page, int size) {
+	    User user = userRepository.findByUsername(username)
+	            .orElseThrow(() -> new RuntimeException("User not found: " + username));
+
+	    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+	    Page<Memory> memoryPage = memoryRepository.findAllByUser(user, pageable);
+
+	    List<MemoryResponse> memoryResponses = memoryPage.getContent().stream()
+	            .map(this::mapToDto)
+	            .collect(Collectors.toList());
+
+	    // Use full paginated constructor
+	    return new ListResponseDTO<>(
+	            true,
+	            "Successfully retrieved user's memories.",
+	            memoryResponses,
+	            memoryPage.getNumber() + 1,
+	            memoryPage.getSize(),
+	            memoryPage.getTotalPages(),
+	            memoryPage.getTotalElements(),
+	            memoryPage.hasNext(),
+	            memoryPage.hasPrevious()
+	    );
 	}
 
 

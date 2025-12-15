@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.mymemories.dto.CreateMemoryRequest;
@@ -61,24 +62,15 @@ public class MemoryController {
 
     // GET ALL MEMORIES (Requires token and retrieves only the user's memories)
 	@GetMapping
-    public ResponseEntity<ListResponseDTO<MemoryResponse>> getAllMemories(
-        Principal principal // <-- Captures authenticated user
-    ) {
-        String authenticatedUsername = principal.getName();
-        
-        
-        // Call service method to filter memories by user
-        List<MemoryResponse> memories = memoryService.getAllMemoriesByUser(authenticatedUsername); 
-        
-        ListResponseDTO<MemoryResponse> response = new ListResponseDTO<>(
-                true, // Success flag
-                "Successfully retrieved user's memories.",
-                memories
-            );
-            
-        // 200 OK is standard for successful GET requests
-        return ResponseEntity.ok(response); 
-    }
+	public ResponseEntity<ListResponseDTO<MemoryResponse>> getAllMemories(
+	        Principal principal,
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size
+	) {
+	    ListResponseDTO<MemoryResponse> response = memoryService.getAllMemoriesByUser(principal.getName(), page, size);
+	    return ResponseEntity.ok(response);
+	}
+
 	
 	// Simplified MemoryController.java
 	// ...

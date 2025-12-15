@@ -6,7 +6,6 @@ import com.example.mymemories.dto.LoginRequest;
 import com.example.mymemories.dto.LoginResponse;
 import com.example.mymemories.dto.RegisterRequest;
 import com.example.mymemories.dto.UserResponse;
-import com.example.mymemories.entity.Role;
 import com.example.mymemories.entity.User;
 import com.example.mymemories.repository.RoleRepository;
 import com.example.mymemories.repository.UserRepository;
